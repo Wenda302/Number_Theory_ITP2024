@@ -238,7 +238,12 @@ lemma eval_mero_uhp_g\<^sub>3 [simp]: "Im z > 0 \<Longrightarrow> eval_mero_uhp 
   unfolding g3_modform_def
   apply (rule eval_mero_uhp_mero_uhp)
   using complex_is_Real_iff by (auto intro!:meromorphic_intros analytic_intros)
- 
+
+lemma eval_mero_uhp_\<j> [simp]: "Im z > 0 \<Longrightarrow> eval_mero_uhp \<j> z = Klein_j z"
+  unfolding j_modform_def
+  apply (rule eval_mero_uhp_mero_uhp)
+  using complex_is_Real_iff by (auto intro!:meromorphic_intros analytic_intros)
+
 subsection \<open>Expansion of various concrete functions in terms of \<open>q\<close>\<close>
 
 lemma compose_modgrp_mero_uhp_mero_uhpI:
@@ -906,6 +911,21 @@ proof -
     by simp
 qed
 
+lemma fourier_0 [simp]: "Eisenstein_G.fourier k 0 = 2 * zeta k"
+proof -
+  have "Eisenstein_G.fourier k 0 = fps_nth (Eisenstein_G_fps_at_cusp k) 0"
+    using has_fps_expansion_at_cusp by (simp add: has_fps_expansion_imp_0_eq_fps_nth_0)
+  also have "\<dots> = 2 * zeta k"
+    by (simp add: Eisenstein_G_fps_at_cusp_def)
+  finally show ?thesis .
+qed
+
+sublocale fourier_expansion_meromorphic "\<G> k" "Suc 0"
+proof
+  show "Eisenstein_G.fourier k meromorphic_on {0}"
+    using has_laurent_expansion_at_cusp by (auto simp: Meromorphic1.meromorphic_on_def)
+qed
+
 end
 
 text \<open>
@@ -914,73 +934,59 @@ text \<open>
 
 lemma eventually_\<G>_eq_at_cusp:
   "eventually (\<lambda>w. eval_mero_uhp (\<G> k) w = Eisenstein_G k w) at_cusp"
-proof -
-  have "eval_mero_uhp (\<G> k) z = Eisenstein_G k z" if "Im z>0" for z
-    unfolding G_modform_def
-    apply (rule eval_mero_uhp_mero_uhp)
-    subgoal by (simp add: Eisenstein_G_analytic_aux analytic_on_imp_meromorphic_on)
-    subgoal by (metis Eisenstein_G_analytic_aux analytic_on_analytic_at mem_Collect_eq that)
-    by fact
-  then show ?thesis unfolding eventually_at_cusp_iff by blast
-qed
+  using eventually_at_cusp[of 0] by eventually_elim auto
 
 lemma eventually_g\<^sub>2_eq_at_cusp:
   "eventually (\<lambda>w. eval_mero_uhp g\<^sub>2 w = Eisenstein_g2 w) at_cusp"
-proof -
-  have "eval_mero_uhp g\<^sub>2 z = Eisenstein_g2 z" if "Im z>0" for z
-    unfolding g2_modform_def
-    apply (rule eval_mero_uhp_mero_uhp)
-    using that
-    by (auto intro!: meromorphic_intros analytic_intros simp:complex_is_Real_iff)
-  then show ?thesis unfolding eventually_at_cusp_iff by blast
-qed
+  using eventually_at_cusp[of 0] by eventually_elim auto
 
 lemma eventually_g\<^sub>3_eq_at_cusp:
   "eventually (\<lambda>w. eval_mero_uhp g\<^sub>3 w = Eisenstein_g3 w) at_cusp"
-proof -
-  have "eval_mero_uhp g\<^sub>3 z = Eisenstein_g3 z" if "Im z>0" for z
-    unfolding g3_modform_def
-    apply (rule eval_mero_uhp_mero_uhp)
-    using that
-    by (auto intro!: meromorphic_intros analytic_intros simp:complex_is_Real_iff)
-  then show ?thesis unfolding eventually_at_cusp_iff by blast
-qed
+  using eventually_at_cusp[of 0] by eventually_elim auto
 
-lemma Eisenstein_g2_fourier_altdef: "Eisenstein_g2.fourier q = 60 * Eisenstein_G.fourier 4 q"
-proof (cases "q = 0")
-  case True
+lemma eventually_modular_discr_eq_at_cusp:
+  "eventually (\<lambda>w. eval_mero_uhp \<Delta> w = modular_discr w) at_cusp"
+  using eventually_at_cusp[of 0] by eventually_elim auto
+
+lemma Eisenstein_g2_at_cusp: "(Eisenstein_g2 \<longlongrightarrow> 4 / 3 * pi ^ 4) at_cusp"
+proof -
   interpret Eisenstein_G_even 4
     by unfold_locales auto
-
-  have F1:"Eisenstein_G.fourier 4 \<midarrow>0\<rightarrow> 2 * zeta 4"
-       and F2:"Eisenstein_G.fourier 4 0 = 2 * zeta 4"
+  have F: "Eisenstein_G.fourier 4 \<midarrow>0\<rightarrow> 2 * zeta 4"
     using has_fps_expansion_at_cusp[THEN has_fps_expansion_imp_tendsto_0
         , unfolded Eisenstein_G_fps_at_cusp_def, simplified] 
     unfolding tendsto_nhds_iff by blast+
 
-  note F2
-  moreover have "Eisenstein_g2.fourier 0 = 60 * (2 * zeta (of_nat 4))"
-  proof -
-    have "(eval_mero_uhp \<G>\<^sub>4 \<longlongrightarrow> 2 * zeta 4) at_cusp"
-      using F1 Eisenstein_G.fourier_tendsto_0_iff
-      by auto
-    then have "(Eisenstein_G 4 \<longlongrightarrow> 2 * zeta 4) at_cusp"
-      apply (elim Lim_transform_eventually)
-      using eventually_\<G>_eq_at_cusp .
-    then have "(Eisenstein_g2  \<longlongrightarrow> 60 * (2 * zeta 4)) at_cusp"
-      unfolding Eisenstein_g2_def [abs_def]
-      by (auto intro!: tendsto_eq_intros)+
-    then have "(eval_mero_uhp g\<^sub>2 \<longlongrightarrow> 60 * (2 * zeta 4)) at_cusp"
-      apply (elim Lim_transform_eventually)
-      using eventually_g\<^sub>2_eq_at_cusp by eventually_elim simp
-    then show ?thesis using Eisenstein_g2.fourier_0_aux by auto
-  qed
-  ultimately show ?thesis using True by auto
+  have "(eval_mero_uhp \<G>\<^sub>4 \<longlongrightarrow> 2 * zeta 4) at_cusp"
+    using F Eisenstein_G.fourier_tendsto_0_iff
+    by auto
+  then have "(Eisenstein_G 4 \<longlongrightarrow> 2 * zeta 4) at_cusp"
+    apply (elim Lim_transform_eventually)
+    using eventually_\<G>_eq_at_cusp .
+  then have "(Eisenstein_g2  \<longlongrightarrow> 60 * (2 * zeta 4)) at_cusp"
+    unfolding Eisenstein_g2_def [abs_def]
+    by (auto intro!: tendsto_eq_intros)+
+  thus ?thesis
+    by (simp add: zeta_even_numeral fact_numeral)
+qed
+
+lemma Eisenstein_g2_fourier_0 [simp]: "Eisenstein_g2.fourier 0 = 4 / 3 * pi ^ 4"
+proof (rule Eisenstein_g2.fourier_0_aux)
+  show "(eval_mero_uhp g\<^sub>2 \<longlongrightarrow> complex_of_real (4 / 3 * pi ^ 4)) at_cusp"
+    by (rule Lim_transform_eventually[OF Eisenstein_g2_at_cusp])
+       (use eventually_g\<^sub>2_eq_at_cusp in \<open>simp add: eq_commute\<close>)
+qed
+
+lemma Eisenstein_g2_fourier_altdef: "Eisenstein_g2.fourier q = 60 * Eisenstein_G.fourier 4 q"
+proof (cases "q = 0")
+  case [simp]: True
+  interpret Eisenstein_G_even 4
+    by unfold_locales auto
+  show ?thesis
+    by (simp add: zeta_even_numeral fact_numeral)
 next
   case False
-
   define Q where "Q = (cusp_q_inv (Suc 0) q)"
-
   have "eval_mero_uhp g\<^sub>2 Q = 60 * eval_mero_uhp \<G>\<^sub>4 Q"
   proof (cases "Im Q>0")
     case True
@@ -1011,42 +1017,53 @@ proof -
     by (simp add: Eisenstein_g2_fourier_altdef [abs_def])
 qed
 
-(*TODO: proof similar to Eisenstein_g2_fourier_altdef*)
-lemma Eisenstein_g3_fourier_altdef: "Eisenstein_g3.fourier q = 140 * Eisenstein_G.fourier 6 q"
-proof (cases "q = 0")
-  case True
+interpretation Eisenstein_g2: fourier_expansion_meromorphic g\<^sub>2 "Suc 0"
+proof
+  show "Eisenstein_g2.fourier meromorphic_on {0}"
+    using Eisenstein_g2_has_fps_expansion_at_cusp
+    by (simp add: analytic_on_imp_meromorphic_on has_fps_expansion_imp_analytic_0)
+qed
+
+
+lemma Eisenstein_g3_at_cusp: "(Eisenstein_g3 \<longlongrightarrow> 8 / 27 * pi ^ 6) at_cusp"
+proof -
   interpret Eisenstein_G_even 6
     by unfold_locales auto
-
-  have F1:"Eisenstein_G.fourier 6 \<midarrow>0\<rightarrow> 2 * zeta 6"
-       and F2:"Eisenstein_G.fourier 6 0 = 2 * zeta 6"
+  have F: "Eisenstein_G.fourier 6 \<midarrow>0\<rightarrow> 2 * zeta 6"
     using has_fps_expansion_at_cusp[THEN has_fps_expansion_imp_tendsto_0
         , unfolded Eisenstein_G_fps_at_cusp_def, simplified] 
     unfolding tendsto_nhds_iff by blast+
 
-  note F2
-  moreover have "Eisenstein_g3.fourier 0 = 140 * (2 * zeta 6)"
-  proof -
-    have "(eval_mero_uhp \<G>\<^sub>6 \<longlongrightarrow> 2 * zeta 6) at_cusp"
-      using F1 Eisenstein_G.fourier_tendsto_0_iff
-      by auto
-    then have "(Eisenstein_G 6 \<longlongrightarrow> 2 * zeta 6) at_cusp"
-      apply (elim Lim_transform_eventually)
-      using eventually_\<G>_eq_at_cusp .
-    then have "(Eisenstein_g3  \<longlongrightarrow> 140 * (2 * zeta 6)) at_cusp"
-      unfolding Eisenstein_g3_def [abs_def]
-      by (auto intro!: tendsto_eq_intros)+
-    then have "(eval_mero_uhp g\<^sub>3 \<longlongrightarrow> 140 * (2 * zeta 6)) at_cusp"
-      apply (elim Lim_transform_eventually)
-      using eventually_g\<^sub>3_eq_at_cusp by eventually_elim simp
-    then show ?thesis using Eisenstein_g3.fourier_0_aux by auto
-  qed
-  ultimately show ?thesis using True by auto
+  have "(eval_mero_uhp \<G>\<^sub>6 \<longlongrightarrow> 2 * zeta 6) at_cusp"
+    using F Eisenstein_G.fourier_tendsto_0_iff
+    by auto
+  then have "(Eisenstein_G 6 \<longlongrightarrow> 2 * zeta 6) at_cusp"
+    apply (elim Lim_transform_eventually)
+    using eventually_\<G>_eq_at_cusp .
+  then have "(Eisenstein_g3  \<longlongrightarrow> 140 * (2 * zeta 6)) at_cusp"
+    unfolding Eisenstein_g3_def [abs_def]
+    by (auto intro!: tendsto_eq_intros)+
+  thus ?thesis
+    by (simp add: zeta_even_numeral fact_numeral)
+qed
+
+lemma Eisenstein_g3_fourier_0 [simp]: "Eisenstein_g3.fourier 0 = 8 / 27 * pi ^ 6"
+proof (rule Eisenstein_g3.fourier_0_aux)
+  show "(eval_mero_uhp g\<^sub>3 \<longlongrightarrow> complex_of_real (8 / 27 * pi ^ 6)) at_cusp"
+    by (rule Lim_transform_eventually[OF Eisenstein_g3_at_cusp])
+       (use eventually_g\<^sub>3_eq_at_cusp in \<open>simp add: eq_commute\<close>)
+qed
+
+lemma Eisenstein_g3_fourier_altdef: "Eisenstein_g3.fourier q = 140 * Eisenstein_G.fourier 6 q"
+proof (cases "q = 0")
+  case [simp]: True
+  interpret Eisenstein_G_even 6
+    by unfold_locales auto
+  show ?thesis
+    by (simp add: zeta_even_numeral fact_numeral)
 next
   case False
-
   define Q where "Q = (cusp_q_inv (Suc 0) q)"
-
   have "eval_mero_uhp g\<^sub>3 Q = 140 * eval_mero_uhp \<G>\<^sub>6 Q"
   proof (cases "Im Q>0")
     case True
@@ -1078,96 +1095,12 @@ proof -
     by (simp add: Eisenstein_g3_fourier_altdef [abs_def])
 qed
 
-
-(*
-text \<open>
-  And the analogous results for \<open>g\<^sub>2\<close> and \<open>g\<^sub>3\<close>:
-\<close>
-
-interpretation Eisenstein_g2:
-  fourier_expansion_holomorphic_at_cusp Eisenstein_g2 0 "{}" "4 / 3 * complex_of_real pi ^ 4"
+interpretation Eisenstein_g3: fourier_expansion_meromorphic g\<^sub>3 "Suc 0"
 proof
-  interpret Eisenstein_G_even 4
-    by unfold_locales auto
-  have "(Eisenstein_g2 \<longlongrightarrow> 60 * (2 * zeta (of_nat 4))) at_cusp"
-    unfolding Eisenstein_g2_def [abs_def]
-    by (rule tendsto_intros)+
-  thus "(Eisenstein_g2 \<longlongrightarrow> 4 / 3 * complex_of_real pi ^ 4) at_cusp"
-    by (simp add: zeta_4)
-qed auto
-
-lemma Eisenstein_g2_fourier_altdef: "Eisenstein_g2.fourier q = 60 * Eisenstein_G.fourier 4 q"
-proof (cases "q = 0")
-  case True
-  interpret Eisenstein_G_even 4
-    by unfold_locales auto
-  from True show ?thesis
-    by (simp add: zeta_4)
-next
-  case False
-  show ?thesis
-    unfolding Eisenstein_g2.fourier_nz_eq[OF False] using False
-    by (simp add: Eisenstein_g2_def Eisenstein_G.fourier_def)
+  show "Eisenstein_g3.fourier meromorphic_on {0}"
+    using Eisenstein_g3_has_fps_expansion_at_cusp
+    by (simp add: analytic_on_imp_meromorphic_on has_fps_expansion_imp_analytic_0)
 qed
-
-corollary Eisenstein_g2_has_fps_expansion_at_cusp [fps_expansion_intros]:
-  "Eisenstein_g2.fourier has_fps_expansion
-      fps_const (4 / 3 * pi ^ 4) * (1 + 240 * of_int.fps (Abs_fps (divisor_sigma 3)))"
-  (is "_ has_fps_expansion ?F")
-proof -
-  interpret Eisenstein_G_even 4
-    by unfold_locales auto
-  have "(\<lambda>\<tau>. 60 * Eisenstein_G.fourier 4 \<tau>) has_fps_expansion ?F"
-    by (rule has_fps_expansion_schematicI, (rule fps_expansion_intros)+)
-       (simp add: Eisenstein_G_fps_at_cusp_def fact_numeral zeta_4 fps_eq_iff
-                  numeral_fps_const algebra_simps)
-  thus ?thesis
-    by (simp add: Eisenstein_g2_fourier_altdef [abs_def])
-qed
-
-
-interpretation Eisenstein_g3:
-  fourier_expansion_holomorphic_at_cusp Eisenstein_g3 0 "{}" "8 / 27 * complex_of_real pi ^ 6"
-proof
-  interpret Eisenstein_G_even 6
-    by unfold_locales auto
-  have "(Eisenstein_g3 \<longlongrightarrow> 140 * (2 * zeta (of_nat 6))) at_cusp"
-    unfolding Eisenstein_g3_def [abs_def]
-    by (rule tendsto_intros)+
-  thus "(Eisenstein_g3 \<longlongrightarrow> 8 / 27 * complex_of_real pi ^ 6) at_cusp"
-    by (simp add: zeta_6)
-qed auto
-
-lemma Eisenstein_g3_fourier_altdef: "Eisenstein_g3.fourier q = 140 * Eisenstein_G.fourier 6 q"
-proof (cases "q = 0")
-  case True
-  interpret Eisenstein_G_even 6
-    by unfold_locales auto
-  from True show ?thesis
-    by (simp add: zeta_6)
-next
-  case False
-  show ?thesis
-    unfolding Eisenstein_g3.fourier_nz_eq[OF False] using False
-    by (simp add: Eisenstein_g3_def Eisenstein_G.fourier_def)
-qed
-
-corollary Eisenstein_g3_has_fps_expansion_at_cusp [fps_expansion_intros]:
-  "Eisenstein_g3.fourier has_fps_expansion
-      fps_const (8 / 27 * pi ^ 6) * (1 - 504 * of_int.fps (Abs_fps (divisor_sigma 5)))"
-  (is "_ has_fps_expansion ?F")
-proof -
-  interpret Eisenstein_G_even 6
-    by unfold_locales auto
-  
-  have "(\<lambda>\<tau>. 140 * Eisenstein_G.fourier 6 \<tau>) has_fps_expansion ?F"
-    by (rule has_fps_expansion_schematicI, (rule fps_expansion_intros)+)
-       (simp add: Eisenstein_G_fps_at_cusp_def fact_numeral zeta_6 fps_eq_iff
-                  numeral_fps_const algebra_simps)
-  thus ?thesis
-    by (simp add: Eisenstein_g3_fourier_altdef [abs_def])
-qed
-*)
 
 
 subsubsection \<open>The modular discriminant \<open>\<Delta>\<close>\<close>
@@ -1192,6 +1125,21 @@ lemma ramanujan_tau_0 [simp]: "ramanujan_tau 0 = 0"
                     divisor_sigma_naive fold_atLeastAtMost_nat.simps atLeastAtMost_nat_numeral_right
                flip: numeral_2_eq_2)
 
+lemma modular_discr_at_cusp: "(modular_discr \<longlongrightarrow> 0) at_cusp"
+proof -
+  note [tendsto_intros] = Eisenstein_g2_at_cusp Eisenstein_g3_at_cusp
+  show ?thesis
+    unfolding modular_discr_def
+    by (rule tendsto_eq_intros refl)+ (simp add: algebra_simps power2_eq_square power3_eq_cube)
+qed
+
+lemma modular_discr_fourier_0 [simp]: "modular_discr.fourier 0 = 0"
+proof (rule modular_discr.fourier_0_aux)
+  show "(eval_mero_uhp \<Delta> \<longlongrightarrow> 0) at_cusp"
+    by (rule Lim_transform_eventually[OF modular_discr_at_cusp])
+       (use eventually_modular_discr_eq_at_cusp in \<open>simp add: eq_commute\<close>)
+qed
+
 lemma modular_discr_fourier_altdef:
   "modular_discr.fourier q = Eisenstein_g2.fourier q ^ 3 - 27 * (Eisenstein_g3.fourier q) ^ 2"
 proof (cases "q = 0")
@@ -1211,28 +1159,20 @@ proof (cases "q = 0")
               Eisenstein_g3.fourier_nz_eq[OF False] Q_def
     by simp
 next
-  case True
-
-  from True
+  case [simp]: True
   show ?thesis
-    apply (simp_all add: eval_nat_numeral algebra_simps)
-    sorry
-    
-qed 
-
-(*
-lemma modular_discr_fourier_altdef:
-  "modular_discr.fourier q = Eisenstein_g2.fourier q ^ 3 - 27 * (Eisenstein_g3.fourier q) ^ 2"
-proof (cases "q = 0")
-  case False
-  show ?thesis
-    unfolding modular_discr.fourier_nz_eq[OF False] Eisenstein_g2.fourier_nz_eq[OF False]
-              Eisenstein_g3.fourier_nz_eq[OF False] by (simp add: modular_discr_def)
-qed (simp_all add: eval_nat_numeral algebra_simps)
-*)
+    by (simp add: eval_nat_numeral algebra_simps)
+qed
 
 definition fps_modular_discr :: "complex fps" where
   "fps_modular_discr = fps_const ((2 * pi) ^ 12) * of_int.fps (Abs_fps ramanujan_tau)"
+
+lemma fps_modular_discr_nonzero [simp]: "fps_modular_discr \<noteq> 0"
+proof -
+  have "fps_nth fps_modular_discr 1 \<noteq> fps_nth 0 1"
+    by (auto simp: fps_modular_discr_def ramanujan_tau_1)
+  thus ?thesis by metis
+qed  
 
 text \<open>Theorem 1.19\<close>
 theorem modular_discr_has_fps_expansion_at_cusp [fps_expansion_intros]:
@@ -1334,6 +1274,46 @@ proof -
     by (simp add: fps_conv_radius_def F_def)
 qed
 
+interpretation modular_discr: fourier_expansion_meromorphic \<Delta> "Suc 0"
+proof
+  show "modular_discr.fourier meromorphic_on {0}"
+    using modular_discr_has_fps_expansion_at_cusp
+    by (simp add: analytic_on_imp_meromorphic_on has_fps_expansion_imp_analytic_0)
+qed
+
+(* TODO: there must be an easier way to do this *)
+lemma not_is_pole_modular_discr_fourier [simp]: "\<not>is_pole modular_discr.fourier q"
+proof (cases "q = 0")
+  case True
+  have "\<not>is_pole modular_discr.fourier 0"
+    by (meson analytic_at_imp_isCont at_cusp_neq_bot has_fps_expansion_imp_analytic_0 isContD 
+              modular_discr.fourier_is_pole_0_iff modular_discr.fourier_tendsto_0_iff 
+              modular_discr_has_fps_expansion_at_cusp not_tendsto_and_filterlim_at_infinity)
+  thus ?thesis
+    using True by simp
+next
+  case False
+  show ?thesis
+  proof
+    assume *: "is_pole modular_discr.fourier q"
+    hence q: "norm q < 1"
+      using modular_discr.not_pole_eval_fourier_outside by force
+    hence q': "Im (cusp_q_inv 1 q) > 0"
+      using False by (auto simp: Im_cusp_q_inv_gt)
+    hence "is_pole (eval_mero_uhp \<Delta>) (cusp_q_inv 1 q)"
+      by (subst modular_discr.fourier_is_pole_cusp_q_iff [symmetric]) (use * False in auto)
+    moreover have "eventually (\<lambda>z. z \<in> {z. Im z > 0}) (at (cusp_q_inv 1 q))"
+      using q q' False by (intro eventually_at_in_open') (auto simp: open_halfspace_Im_gt)
+    hence "eventually (\<lambda>z. eval_mero_uhp \<Delta> z = modular_discr z) (at (cusp_q_inv 1 q))"
+      by eventually_elim auto
+    ultimately have "is_pole modular_discr (cusp_q_inv 1 q)"
+      using is_pole_transform by blast
+    moreover have "modular_discr analytic_on {cusp_q_inv 1 q}"
+      by (intro analytic_intros) (use False q q' in \<open>auto simp: complex_is_Real_iff\<close>)
+    ultimately show False
+      by (simp add: analytic_at_imp_no_pole)
+  qed
+qed
 
 lemma modular_discr_fourier_expansion:
   assumes \<tau>: "Im \<tau> > 0"
@@ -1358,14 +1338,8 @@ proof -
       unfolding F_def using modular_discr_has_fps_expansion_at_cusp
       using fps_modular_discr_def by presburger
     show "modular_discr.fourier holomorphic_on ball 0 1"
-      sorry
-   qed
-  (*
-  proof (rule has_fps_expansion_imp_eval_fps_eq) 
-    show "norm (cusp_q 1 \<tau>) < 1"
-      using assms by (simp add: cusp_q_def)
-  qed (auto intro!: holomorphic_intros)
-  *)
+      by (intro holomorphic_intros) auto
+  qed
   also have "modular_discr.fourier (cusp_q 1 \<tau>) = modular_discr \<tau>"
     using assms by simp
   finally show ?thesis unfolding modular_discr.fourier_cusp_q
@@ -1459,10 +1433,6 @@ qed
 text \<open>Theorem 1.20\<close>
 
 theorem Klein_j_has_laurent_expansion_at_cusp [laurent_expansion_intros]:
-  "Klein_J.fourier has_laurent_expansion (fls_const (1 / 12 ^ 3) * fls_Klein_j)" sorry
-
-(*
-theorem Klein_j_has_laurent_expansion_at_cusp [laurent_expansion_intros]:
   "Klein_j.fourier has_laurent_expansion fls_Klein_j"
 proof -
   define A :: "complex fps" where "A = of_nat.fps (Abs_fps (divisor_sigma 3))"
@@ -1483,17 +1453,18 @@ proof -
   have "(\<lambda>z. 12 ^ 3 * (Eisenstein_g2.fourier z ^ 3 / modular_discr.fourier z)) has_laurent_expansion
           (1 + 240 * fps_to_fls A) ^ 3 / fps_to_fls B"
     by (rule has_laurent_expansion_schematicI, (rule laurent_expansion_intros)+)
-       (simp add: fls_times_fps_to_fls fls_const_power A_def B_def divide_simps
+       (simp add: fps_modular_discr_def A_def B_def fls_times_fps_to_fls fls_const_power divide_simps
              flip: fls_const_mult_const fls_const_divide_const)
   also have "?this \<longleftrightarrow> Klein_j.fourier has_laurent_expansion F"
   proof (rule has_laurent_expansion_cong)
-    have "eventually (\<lambda>z::complex. z \<noteq> 0) (at 0)"
+    have "eventually (\<lambda>z::complex. z \<in> ball 0 1 - {0}) (at 0)"
       by (auto simp: eventually_at intro: exI[of _ 1])
     thus "eventually (\<lambda>z. 12 ^ 3 * (Eisenstein_g2.fourier z ^ 3 / modular_discr.fourier z) =
                           Klein_j.fourier z) (at 0)"
       by eventually_elim
          (simp add: Klein_j.fourier_def Klein_j_def Eisenstein_g2.fourier_def 
-                    modular_discr.fourier_def Klein_J_def)
+                    modular_discr_fourier_altdef Im_cusp_q_inv_gt Klein_J_def modular_discr_def
+                    Eisenstein_g3.fourier_def)   
   qed (auto simp: fps_to_fls_power fps_to_fls_plus fls_times_fps_to_fls F_def)
   finally have has_exp: "Klein_j.fourier has_laurent_expansion F" .
 
@@ -1529,6 +1500,90 @@ proof -
     by (simp add: fls_Klein_j_def)
 qed
 
+lemma is_pole_Klein_j_fourier_iff [simp]: "is_pole Klein_j.fourier q \<longleftrightarrow> q = 0"
+proof
+  assume pole: "is_pole Klein_j.fourier q"
+  show "q = 0"
+  proof (rule ccontr)
+    assume "q \<noteq> 0"
+    from pole have "norm q < 1"
+      using Klein_j.not_pole_eval_fourier_outside by force
+    with \<open>q \<noteq> 0\<close> have q: "q \<in> ball 0 1 - {0}"
+      by auto
+    from q have q': "Im (cusp_q_inv 1 q) > 0"
+      by (auto simp: Im_cusp_q_inv_gt)
+    have "is_pole (eval_mero_uhp \<j>) (cusp_q_inv 1 q)"
+      by (subst Klein_j.fourier_is_pole_cusp_q_iff [symmetric]) (use pole q in auto)
+    moreover have "eventually (\<lambda>z. z \<in> {z. Im z > 0}) (at (cusp_q_inv 1 q))"
+      using q q' by (intro eventually_at_in_open') (auto simp: open_halfspace_Im_gt)
+    hence "eventually (\<lambda>z. eval_mero_uhp \<j> z = Klein_j z) (at (cusp_q_inv 1 q))"
+      by eventually_elim auto
+    ultimately have "is_pole Klein_j (cusp_q_inv 1 q)"
+      using is_pole_transform by blast
+    moreover have "Klein_j analytic_on {cusp_q_inv 1 q}"
+      by (intro analytic_intros) (use q q' in \<open>auto simp: complex_is_Real_iff\<close>)
+    ultimately show False
+      by (simp add: analytic_at_imp_no_pole)
+  qed
+next
+  assume "q = 0"
+  thus "is_pole Klein_j.fourier q"
+    using has_laurent_expansion_imp_is_pole_0[OF Klein_j_has_laurent_expansion_at_cusp]
+    by auto
+qed
+
+lemma Klein_J_fourier_altdef: "Klein_J.fourier q = Klein_j.fourier q / 12 ^ 3"
+proof -
+  have eq: "Klein_J.fourier q = Klein_j.fourier q / 12 ^ 3" if "q \<noteq> 0" for q
+  proof (cases "norm q < 1")
+    case True
+    thus ?thesis using \<open>q \<noteq> 0\<close>
+      by (simp add: Klein_J.fourier_def Klein_j.fourier_def Im_cusp_q_inv_gt Klein_J_conv_Klein_j 
+                    eval_mero_uhp_outside)
+  qed (simp add: Klein_J.eval_fourier_outside Klein_j.eval_fourier_outside)
+
+  have "is_pole Klein_J.fourier 0"
+  proof (rule is_pole_transform)
+    show "is_pole (\<lambda>q. 1 / 12 ^ 3 * Klein_j.fourier q) 0"
+      by (subst is_pole_cmult_iff) auto
+  next
+    have "eventually (\<lambda>q. q \<noteq> 0) (at (0 :: complex))"
+      using eventually_neq_at_within by auto
+    thus "eventually (\<lambda>q. 1 / 12 ^ 3 * Klein_j.fourier q = Klein_J.fourier q) (at 0)"
+      by eventually_elim (use eq in auto)
+  qed auto
+  hence "Klein_J.fourier 0 = 0"
+    by (meson Klein_J.fourier_def Klein_J.fourier_is_pole_0_iff at_cusp_neq_bot
+              not_tendsto_and_filterlim_at_infinity)
+  moreover have "Klein_j.fourier 0 = 0"
+    by (metis Klein_j.fourier_def Klein_j.fourier_is_pole_0_iff at_cusp_neq_bot 
+              is_pole_Klein_j_fourier_iff not_tendsto_and_filterlim_at_infinity)
+  ultimately show ?thesis
+    by (cases "q = 0") (use eq[of q] in auto)
+qed    
+
+lemma Klein_J_has_laurent_expansion_at_cusp [laurent_expansion_intros]:
+  "Klein_J.fourier has_laurent_expansion (fls_const (1 / 12 ^ 3) * fls_Klein_j)"
+proof -
+  have "(\<lambda>q. Klein_j.fourier q / 12 ^ 3) has_laurent_expansion (fls_const (1 / 12 ^ 3) * fls_Klein_j)"
+    by (rule has_laurent_expansion_schematicI, (rule laurent_expansion_intros)+)
+       (auto simp flip: fls_const_divide_const)
+  also have "(\<lambda>q. Klein_j.fourier q / 12 ^ 3) = Klein_J.fourier"
+    using Klein_J_fourier_altdef by auto
+  finally show ?thesis .
+qed
+
+interpretation Klein_j: fourier_expansion_meromorphic \<j> "Suc 0"
+proof
+  show "Klein_j.fourier meromorphic_on {0}"
+    using Klein_j_has_laurent_expansion_at_cusp by (auto simp: Meromorphic1.meromorphic_on_def)
+qed
+
+interpretation Klein_J: fourier_expansion_meromorphic \<J> "Suc 0"
+proof
+  show "Klein_J.fourier meromorphic_on {0}"
+    using Klein_J_has_laurent_expansion_at_cusp by (auto simp: Meromorphic1.meromorphic_on_def)
+qed
 
 lemma fls_conv_radius_Klein_c_ge:
   "fls_conv_radius fls_Klein_j \<ge> 1"
@@ -1553,7 +1608,7 @@ qed
 theorem Klein_j_fourier_expansion_aux:
   fixes z :: complex
   assumes z: "Im z > 0"
-  defines "x \<equiv> cusp_q z"
+  defines "x \<equiv> cusp_q 1 z"
   shows "(\<lambda>n. of_int (Klein_c n) * x ^ n) sums (Klein_j z - 1 / x)"
 proof -
   have [simp]: "fls_nth fls_Klein_j (- 1) = 1"
@@ -1582,30 +1637,6 @@ proof -
     by (simp add: fls_Klein_j_def x_def)
 qed
 
-interpretation Klein_j: fourier_expansion_meromorphic_at_cusp_explicit' Klein_j 0 "{}" fls_Klein_j
-proof
-  show "Klein_j.fourier has_laurent_expansion fls_Klein_j"
-    using Klein_j_has_laurent_expansion_at_cusp by blast
-qed auto
-
-interpretation Klein_j: fourier_expansion_pole_at_cusp Klein_j 0 "{}"
-proof
-  have "is_pole Klein_j.fourier 0"
-    using has_laurent_expansion_imp_is_pole_0[OF Klein_j.laurent_at_cusp''] by auto
-  thus "filterlim Klein_j at_infinity at_cusp"
-    using Klein_j.fourier_is_pole_0_iff by blast
-qed auto
-
-
-interpretation Klein_J: fourier_expansion_pole_at_cusp Klein_J 0 "{}"
-proof
-  have "filterlim (\<lambda>z. inverse (12 ^ 3) * Klein_j z) at_infinity at_cusp"
-    by (intro tendsto_mult_filterlim_at_infinity [OF tendsto_const] Klein_j.pole_at_cusp) auto
-  thus "filterlim Klein_J at_infinity at_cusp"
-    unfolding Klein_J_conv_Klein_j by (simp add: field_simps)
-qed auto
-*)
-
 
 subsection \<open>Mapping properties\<close>
 
@@ -1620,8 +1651,6 @@ text \<open>
 lemma Klein_j_mirror:
   assumes z: "Im z > 0"
   shows   "Klein_j (-cnj z) = cnj (Klein_j z)"
-  sorry
-(*
 proof -
   have "(\<lambda>n. of_int (Klein_c n) * (cusp_q 1 (-cnj z)) ^ n) sums (Klein_j (-cnj z) - 1 / cusp_q 1 (-cnj z))"
     using z by (intro Klein_j_fourier_expansion_aux) auto
@@ -1642,7 +1671,6 @@ proof -
   thus "Klein_j (-cnj z) = cnj (Klein_j z)"
     using complex_cnj_cnj by metis
 qed
-*)
 
 lemma Klein_J_mirror: "Im z > 0 \<Longrightarrow> Klein_J (-cnj z) = cnj (Klein_J z)"
   by (simp add: Klein_J_conv_Klein_j Klein_j_mirror)
