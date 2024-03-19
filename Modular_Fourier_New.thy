@@ -3,7 +3,7 @@ theory Modular_Fourier_New
 imports 
   Klein_J
   Cotangent_PFD_Formula_Extras
-  Divisor_Sigma_Powser
+  FPS_Homomorphism
   Polylog.Polylog
   Zeta_Function.Zeta_Function
   Fourier_Expansion_Mero_UHP
@@ -569,6 +569,19 @@ proof (rule conv_radius_geI_ex)
     by (auto simp: sums_iff)
   thus "\<exists>z. norm z = r \<and> summable (\<lambda>n. divisor_sigma a n * z ^ n)"
     by (intro exI[of _ "of_real r"]) (use r in auto)
+qed
+
+lemma abs_summable_divisor_sigma_powser:
+  assumes "norm (z :: complex) < 1"
+  shows   "summable (\<lambda>n. norm (of_nat (divisor_sigma k n) * z ^ n))"
+proof (rule abs_summable_in_conv_radius)
+  have "ereal (norm z) < 1"
+    using assms by simp
+  also have "1 \<le> conv_radius (divisor_sigma (of_nat k :: complex))"
+    by (rule conv_radius_divisor_sigma_ge)
+  also have "(divisor_sigma (of_nat k :: complex)) = (\<lambda>n. of_nat (divisor_sigma k n))"
+    by (auto simp: divisor_sigma_of_nat)
+  finally show "ereal (norm z) < conv_radius (\<lambda>n. complex_of_nat (divisor_sigma k n))" .
 qed
 
 lemma Eisenstein_G_fourier_expansion_aux:
@@ -1261,11 +1274,15 @@ proof -
   show "modular_discr.fourier has_fps_expansion F"
     using has_exp \<open>F0 = F\<close> by simp
 
+  have conv_radius: "fps_conv_radius (of_nat.fps (Abs_fps (divisor_sigma a)) :: complex fps) \<ge> 1" for a
+    using conv_radius_divisor_sigma_ge[of "of_nat a :: complex"]
+    by (simp add: fps_conv_radius_def flip: divisor_sigma_of_nat)
+
   have "fps_conv_radius F0 \<ge> 1"
-    using fps_conv_radius_divisor_sigma[of 3] fps_conv_radius_divisor_sigma[of 5]
+    using conv_radius[of 3] conv_radius[of 5]
     unfolding F0_def A_def B_def of_int.fps_add of_int.fps_mult of_int.fps_diff
     by (intro fps_conv_radius_diff_ge fps_conv_radius_mult_ge fps_conv_radius_add_ge
-              order.trans[OF _ fps_conv_radius_power] fps_conv_radius_divisor_sigma) auto
+              order.trans[OF _ fps_conv_radius_power]) auto
   with \<open>F0 = F\<close> show "fps_conv_radius F \<ge> 1" by simp
   hence "fps_conv_radius (Abs_fps (\<lambda>n. of_int (ramanujan_tau n) :: complex)) \<ge> 1"
     apply (simp add: F_def c_def fps_conv_radius_cmult_left)
