@@ -7,7 +7,6 @@ theory Wiggle_Prerequisites
     Path_Nhds
     Library_Extras
     Real_Mod
-    Meromorphic_Extras
 begin
 
 lemma linear_image_valid_path:
@@ -532,28 +531,6 @@ qed (auto intro!: inj_onI continuous_intros)
 
 lemma winding_preserving_uminus: "winding_preserving A (\<lambda>x. -x) (\<lambda>x. x)"
   using winding_preserving_mult[of "-1" A] by simp
-
-lemma winding_preserving_holomorphic:
-  assumes "f analytic_on A" "inj_on f A" "simply_connected A"
-  shows   "winding_preserving A f (\<lambda>x. x)"
-proof
-  show "inj_on f A"
-    by fact
-  show "continuous_on A f"
-    using assms(1) by (simp add: analytic_imp_holomorphic holomorphic_on_imp_continuous_on)
-  show "winding_number (f \<circ> p) (f x) = winding_number p x"
-    if p: "path p" "path_image p \<subseteq> A" "pathstart p = pathfinish p" "x \<in> A - path_image p" for p x
-  proof (rule winding_number_compose_inside)
-    show "x \<in> A - path_image p" "f analytic_on A" "inj_on f A"
-         "pathstart p = pathfinish p" "path_image p \<subseteq> A"
-      by fact+
-    show "winding_number p z = 0" if "z \<notin> A" for z
-      using that p assms(3) simply_connected_imp_winding_number_zero by metis
-    show "valid_path p"
-      sorry
-  qed
-qed
-
 
 section \<open>Wiggle Prerequisites\<close>
 
