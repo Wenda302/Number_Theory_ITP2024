@@ -738,15 +738,4 @@ proof -
   ultimately show ?thesis by simp
 qed
 
-theorem argument_principle_meromorphic:
-  fixes f:: "complex \<Rightarrow> complex"
-  assumes f_analytic: "f meromorphic_on A" and
-          \<gamma>: "valid_path \<gamma>" "pathfinish \<gamma> = pathstart \<gamma>" "path_image \<gamma> \<subseteq> A - pts" and
-          inside_subset: "inside (path_image \<gamma>) \<subseteq> A" and
-          pts_superset: "\<And>z. z \<in> A \<Longrightarrow> is_pole f z \<or> f z = 0 \<Longrightarrow> z \<in> pts" and
-          f_nz: "\<And>z. z \<in> A - pts \<Longrightarrow> f z \<noteq> 0" 
-  shows "contour_integral \<gamma> (\<lambda>x. deriv f x / f x) = 2 * pi * \<i> *
-          (\<Sum>\<^sub>\<infinity> z\<in>pts. winding_number \<gamma> z * zorder f z)"
-  oops
-
 end

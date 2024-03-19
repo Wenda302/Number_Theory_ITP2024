@@ -222,7 +222,6 @@ proof (cases "is_singular_modgrp f")
       by (intro cong_add) (auto simp: Cong.cong_def)
     thus "[modgrp_c f * m + modgrp_d f = modgrp_d f] (mod modgrp_c f)"
       by simp
-    find_consts name:coprime
   qed (use coprime_modgrp_c_d[of f] in \<open>auto simp: coprime_commute\<close>)
   thus ?thesis using True
     by (simp add: dedekind_eps_def add_divide_distrib ring_distribs is_singular_modgrp_times_iff

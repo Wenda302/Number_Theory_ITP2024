@@ -1479,47 +1479,6 @@ proof -
   qed fact+
 qed
 
-(* TODO: I think this can be proven somehow, but not sure how (and we don't really need it) *)
-lemma analytic_on_compact_imp_lipschitz:
-  assumes "f analytic_on A" "compact A"
-  obtains C where "C-lipschitz_on A f"
-proof -
-  obtain r where r: "\<And>z. z \<in> A \<Longrightarrow> f holomorphic_on ball z (r z)" "\<And>z. z \<in> A \<Longrightarrow> r z > 0"
-    using assms(1) unfolding analytic_on_def by metis
-
-  obtain I where I: "I \<subseteq> A" "finite I" "A \<subseteq> (\<Union>z\<in>I. ball z (r z / 2))"
-    using \<open>compact A\<close>
-  proof (rule compactE_image)
-    show "A \<subseteq> (\<Union>z\<in>A. ball z (r z / 2))"
-      using r(2) by auto
-  qed auto
-
-  define A' where "A' = (\<Union>z\<in>I. cball z (r z / 2))"
-  have A': "compact A'" "A \<subseteq> A'"
-    unfolding A'_def using I r(2) by force+
-  have f: "f analytic_on A'"
-    unfolding A'_def analytic_on_UN
-  proof
-    fix z assume "z \<in> I"
-    with I have "z \<in> A"
-      by blast
-    have "f analytic_on ball z (r z)"
-      using r[OF \<open>z \<in> A\<close>] by (simp add: analytic_on_open)
-    thus "f analytic_on (cball z (r z / 2))"
-      by (rule analytic_on_subset) (use r(2)[OF \<open>z \<in> A\<close>] in auto)
-  qed
-
-  define C where "C = Sup (norm ` (insert 0 (deriv f ` A')))"
-  have "compact (insert 0 (deriv f ` A'))"
-    by (intro compact_insert compact_continuous_image analytic_imp_holomorphic
-              holomorphic_on_imp_continuous_on analytic_intros A' f)
-  hence "bounded (insert 0 (deriv f ` A'))"
-    by (rule compact_imp_bounded)
-  hence bdd: "bdd_above (norm ` insert 0 (deriv f ` A'))"
-    unfolding bdd_above_norm .
-  oops
-  
-
 lemma lipschitz_on_complex_inverse:
   assumes "C > 0"
   shows   "(1/C^2)-lipschitz_on {z. Im z \<ge> C} (\<lambda>z. inverse z :: complex)"

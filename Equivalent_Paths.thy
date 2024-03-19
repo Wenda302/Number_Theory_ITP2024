@@ -1108,37 +1108,6 @@ proof -
     unfolding is_subpath_def using inv.subpath.subpath_locale_axioms by blast
 qed
 
-(*
-  This proof will probably a bit messy. We have strictly monotonic functions
-  f : [0,1] \<rightarrow> [a,b] and g : [0,1] \<rightarrow> [c, d] such that the p((f \<circ> g)^n x) = p x
-  for all n. 
-  I think that the sequence (f \<circ> g)^n 0 approaches some fixed point x0 of f and g from
-  below and similarly (f \<circ> g)^n 1 approaches a fixed point x1 from above.
-  Then that already means that the subpaths from x0 to x1 are equivalent with a
-  corresponding rescaling of f as a witness.
-
-  It remains to show that the first and the last bit are also equivalent. Here I think
-  one should be able to show that these are constant paths, and constant paths are
-  trivially equivalent.
-
-  But I'm still fuzzy about the details. It's not very important either, so I'll just
-  leave it like that for now.
-
-  Manuel
-*)
-lemma subpath_antisym:
-  assumes "is_subpath p q" "is_subpath q p"
-  shows   "eq_paths p q"
-proof -
-  from assms obtain f where "subpath_locale p q f"
-    by (auto simp: is_subpath_def)
-  then interpret pq: subpath_locale p q f .
-  from assms obtain g where "subpath_locale q p g"
-    by (auto simp: is_subpath_def)
-  then interpret qp: subpath_locale q p g .
-  show ?thesis
-    oops (* TODO *)
-
 lemma is_subpath_reverse [intro]:
   "is_subpath p q \<Longrightarrow> is_subpath (reversepath p) (reversepath q)"
   unfolding is_subpath_def using subpath_locale.reverse by auto

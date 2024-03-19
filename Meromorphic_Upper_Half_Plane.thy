@@ -45,10 +45,6 @@ lemma is_pole_deriv_iff:
   by (meson is_pole_def is_pole_deriv not_essential_def not_tendsto_and_filterlim_at_infinity 
         removable_singularity_deriv trivial_limit_at)
 
-find_consts "complex \<Rightarrow> complex"
-
-
-
 definition is_mero_uhp :: "(complex \<Rightarrow> complex) \<Rightarrow> bool" where
   "is_mero_uhp f \<longleftrightarrow>
      f nicely_meromorphic_on {z. Im z > 0} \<and>
@@ -1372,38 +1368,6 @@ proof safe
   finally show "eventually (\<lambda>z. f (apply_modgrp h z) = g (apply_modgrp h z)) (at z)"
     by (simp add: eventually_filtermap)
 qed
-
-(*
-ML \<open>
-(* expected goal shape: mero_uhp_rel f ?g *)
-fun simp_mero_uhp_tac ctxt =
-  let
-    val raw_intros =
-      Named_Theorems.get ctxt @{named_theorems mero_uhp_rel_intros}
-    val congs = Named_Theorems.get ctxt @{named_theorems mero_uhp_rel_cong}
-    val intros = map (fn thm => thm RS @{thm mero_uhp_rel_trans}) raw_intros
-    val extra_intros =
-      maps (Named_Theorems.get ctxt)
-        [@{named_theorems meromorphic_intros},
-         @{named_theorems analytic_intros}] @ @{thms eval_mero_uhp_meromorphic}
-    fun tac i =
-      REPEAT_DETERM (CHANGED (((TRY o (resolve_tac ctxt congs THEN_ALL_NEW tac))
-       THEN' resolve_tac ctxt intros) i))
-  in
-    tac
-  end
-\<close>
-
-
-schematic_goal "mero_uhp_rel (compose_modgrp_mero_uhp (f + g) h) ?i"
-  apply (tactic \<open>HEADGOAL (simp_mero_uhp_tac @{context})\<close>)
-apply (tactic \<open>HEADGOAL (simp_mero_uhp_tac @{context})\<close>)
-  apply (rule mero_uhp_rel_cong)
-   apply (tactic \<open>HEADGOAL (simp_mero_uhp_tac @{context})\<close>)
-  apply (rule mero_uhp_rel_refl)
-  apply (tactic \<open>HEADGOAL (simp_mero_uhp_tac @{context})\<close>)
-  oops
-*)
 
 interpretation compose_modgrp_mero_uhp: field_char_0_hom "\<lambda>f. compose_modgrp_mero_uhp f h"
 proof (unfold_locales, goal_cases)
