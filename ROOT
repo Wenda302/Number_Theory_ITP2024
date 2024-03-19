@@ -21,6 +21,7 @@ session Modular_Functions (AFP) = Zeta_Function +
   theories
     Kronecker_Theorem
     Dedekind_Eta_Function
+    More_Klein_J
   document_files
     "root.tex"
     "root.bib"
