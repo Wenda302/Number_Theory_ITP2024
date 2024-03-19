@@ -1,5 +1,5 @@
 section \<open>The Fourier expansions of Klein's \<open>j\<close> functions and some related functions\<close>
-theory Modular_Fourier_New
+theory Modular_Fourier
 imports 
   Klein_J
   Cotangent_PFD_Formula_Extras

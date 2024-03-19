@@ -1,5 +1,5 @@
 theory More_Zeta_Laurent_Expansion
-  imports "Zeta_Function.Zeta_Laurent_Expansion" Meromorphic_Extras
+  imports "Zeta_Function.Zeta_Laurent_Expansion"
 begin
 
 definition fps_pre_zeta_1 :: "complex fps" where

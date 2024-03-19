@@ -1,6 +1,6 @@
 theory Meromorphic_Forms_Valence_Formula_Proof
-  imports Modular_Group Wiggle "Winding_Number_Eval.Winding_Number_Eval" Path_Automation Meromorphic_Extras
-          Modular_Forms_New
+  imports Modular_Group Wiggle "Winding_Number_Eval.Winding_Number_Eval" Path_Automation 
+          Modular_Forms
 begin
 
 lemma (in meromorphic_form) rel_imp_eval_eq_0_iff: "rel z z' \<Longrightarrow> f z = 0 \<longleftrightarrow> f z' = 0"

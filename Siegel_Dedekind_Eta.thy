@@ -1,5 +1,5 @@
 theory Siegel_Dedekind_Eta
-  imports Meromorphic_Extras Bernoulli.Bernoulli_FPS "HOL-Real_Asymp.Real_Asymp"
+  imports Bernoulli.Bernoulli_FPS "HOL-Real_Asymp.Real_Asymp"
           "Winding_Number_Eval.Winding_Number_Eval" Path_Automation
            More_Topology More_Cotangent
 begin

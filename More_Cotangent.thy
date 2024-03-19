@@ -1,5 +1,6 @@
 theory More_Cotangent
-  imports Meromorphic_Extras "Bernoulli.Bernoulli_FPS" "HOL-Real_Asymp.Real_Asymp" "Formal_Puiseux_Series.Formal_Puiseux_Series"
+  imports "HOL-Complex_Analysis.Complex_Analysis" 
+    More_Topology "Bernoulli.Bernoulli_FPS" "HOL-Real_Asymp.Real_Asymp" "Formal_Puiseux_Series.Formal_Puiseux_Series"
 begin
 
 lemma continuous_on_cot [continuous_intros]:

@@ -1,5 +1,5 @@
-theory Modular_Forms_New
-  imports Modular_Fourier_New
+theory Modular_Forms
+  imports Modular_Fourier
 begin
 
 lemma zorder_0_eq: "zorder (\<lambda>_. 0) x = (THE n. False)"
@@ -1782,8 +1782,7 @@ proof -
   show "meromorphic_form_explicit UNIV Klein_J 0 (fls_const (1 / 12 ^ 3) * fls_Klein_j)"
   proof
     show "fourier has_laurent_expansion (fls_const (1 / 12 ^ 3) * fls_Klein_j)"
-      using Klein_j_has_laurent_expansion_at_cusp
-      by (simp add: modgrp_subgroup_period_def J_modform_def)
+      using Klein_J_has_laurent_expansion_at_cusp by (simp add: J_modform_def)
   qed
 qed (simp_all add: J_modform_def)
 
